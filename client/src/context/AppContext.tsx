@@ -119,17 +119,18 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      (async () => {
-        await fetchUser(token);
-        await fetchFoodLogs(token);
-        await fetchActivityLogs(token);
-      })();
-    } else {
-      setIsUserFetched(true);
-    }
-  }, []);
+  const token = localStorage.getItem("token");
+  if (token) {
+    (async () => {
+      await fetchUser(token);
+      await fetchFoodLogs(token);
+      await fetchActivityLogs(token);
+    })();
+  } else {
+    // ✅ wrap in setTimeout to avoid synchronous setState in effect
+    setTimeout(() => setIsUserFetched(true), 0);
+  }
+}, []);
 
   const value = {
     user,
