@@ -1,10 +1,10 @@
-import { Activity, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { getMotivationalMessage } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
 import type { ActivityEntry, FoodEntry } from "../types";
 import Card from "../components/ui/Card";
 import ProgressBar from "../components/ui/ProgressBar";
-import { ActivityIcon, FlameIcon, HamburgerIcon, LucideActivity, Ruler, ScaleIcon, TrendingUpIcon, ZapIcon } from "lucide-react";
+import { ActivityIcon, FlameIcon, HamburgerIcon,  Ruler, ScaleIcon, TrendingUpIcon, ZapIcon } from "lucide-react";
 import CaloriesChart from "../assets/CaloriesChart";
 
 
