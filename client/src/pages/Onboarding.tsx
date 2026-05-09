@@ -9,6 +9,7 @@ import { ageRanges, goalOptions } from "../assets/assets";
 import Slider from "../components/ui/Slider";
 import api from "../configs/api";
 
+
 const Onboarding = () => {
 
   const [step, setStep] = useState(1)
