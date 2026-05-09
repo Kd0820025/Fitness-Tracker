@@ -17,85 +17,90 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [user, setUser] = useState<User | null>(null);
   const [isUserFetched, setIsUserFetched] = useState<boolean>(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(localStorage.getItem('token') ? false : true);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false); // ← always start false, fetchUser will set it
   const [allFoodLogs, setAllFoodLogs] = useState<FoodEntry[]>([]);
   const [allActivityLogs, setAllActivityLogs] = useState<ActivityEntry[]>([]);
 
   const signup = async (credentials: Credentials) => {
     try {
-      const { data } = await api.post('/api/auth/local/register', credentials)
-    setUser({ ...data.user, token: data.jwt });
-
-    if (data?.user?.age && data?.user?.weight && data?.user?.goal) {
-      setOnboardingCompleted(true);
-    }
-
-    localStorage.setItem("token", data.jwt);
-    api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
-    navigate("/onboarding");
+      const { data } = await api.post('/api/auth/local/register', credentials);
+      setUser({ ...data.user, token: data.jwt });
+      localStorage.setItem("token", data.jwt);
+      api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
+      setOnboardingCompleted(false); // ← new user, onboarding not done
+      navigate("/onboarding");
     } catch (error: any) {
-          console.log(error);
-          toast.error(error?.response?.data?.error?.message || error?.message)
+      console.log(error);
+      toast.error(error?.response?.data?.error?.message || error?.message);
     }
-  }
+  };
 
   const login = async (credentials: Credentials) => {
-   try{
-     const { data } = await api.post('/api/auth/local', {identifier: credentials.email, password: credentials.password});
-    setUser({ ...data.user, token: data.jwt });
+    try {
+      const { data } = await api.post('/api/auth/local', {
+        identifier: credentials.email,
+        password: credentials.password
+      });
+      setUser({ ...data.user, token: data.jwt });
+      localStorage.setItem("token", data.jwt);
+      api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
 
-    if (data?.user?.age && data?.user?.weight && data?.user?.goal) {
-      setOnboardingCompleted(true);
-      navigate("/dashboard");
-    }else {
-      navigate("/onboarding");
+      // fetch full user to check onboarding status
+      await fetchUser(data.jwt);
+
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error?.response?.data?.error?.message || error?.message);
     }
-
-    localStorage.setItem("token", data.jwt);
-    api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
-   } catch (error: any) {
-         console.log(error);
-          toast.error(error?.response?.data?.error?.message || error?.message)
-   }
   };
 
   const fetchUser = async (token: string) => {
-   try {
-     const { data } = await api.get('/api/users/me', {headers: {Authorization: `Bearer ${token}`}});
-    setUser({ ...data, token });
+    try {
+      const { data } = await api.get('/api/users/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    if (data?.age && data?.weight && data?.goal) {
-      setOnboardingCompleted(true);
+      console.log("USER DATA FROM STRAPI:", data); // ← keep this for now
+
+      setUser({ ...data, token });
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      if (data?.age && data?.weight && data?.goal) {
+        setOnboardingCompleted(true);
+        navigate("/dashboard"); // ← onboarding done, go to dashboard
+      } else {
+        setOnboardingCompleted(false);
+        navigate("/onboarding"); // ← onboarding not done
+      }
+
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error?.response?.data?.error?.message || error?.message);
     }
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    
-   } catch (error:any) {
-       console.log(error);
-          toast.error(error?.response?.data?.error?.message || error?.message)
-    
-   }
-   setIsUserFetched(true);
+    setIsUserFetched(true);
   };
 
   const fetchFoodLogs = async (token: string) => {
     try {
-        const {data} = await api.get('/api/food-logs', {headers: {Authorization: `Bearer ${token}`}})
-        setAllFoodLogs(data)
+      const { data } = await api.get('/api/food-logs', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAllFoodLogs(data);
     } catch (error: any) {
       console.log(error);
-          toast.error(error?.response?.data?.error?.message || error?.message)
+      toast.error(error?.response?.data?.error?.message || error?.message);
     }
   };
 
   const fetchActivityLogs = async (token: string) => {
     try {
-       const {data} = await api.get('/api/activity-logs', {headers: {Authorization: `Bearer ${token}`}})
-        setAllActivityLogs(data)
-
+      const { data } = await api.get('/api/activity-logs', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAllActivityLogs(data);
     } catch (error: any) {
       console.log(error);
       toast.error(error?.response?.data?.error?.message || error?.message);
-      
     }
   };
 
@@ -109,7 +114,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (token) {
       (async () => {
         await fetchUser(token);
@@ -117,7 +121,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         await fetchActivityLogs(token);
       })();
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsUserFetched(true);
     }
   }, []);
@@ -141,5 +144,4 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = () => useContext(AppContext);
