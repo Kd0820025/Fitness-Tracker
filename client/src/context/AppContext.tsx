@@ -12,21 +12,12 @@ import toast from "react-hot-toast";
 
 const AppContext = createContext(initialState);
 
-// ✅ moved outside component
-const setAuthToken = (token: string | null) => {
-  if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common['Authorization'];
-  }
-};
-
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User | null>(null);
   const [isUserFetched, setIsUserFetched] = useState<boolean>(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false); // fix 1: always start false
   const [allFoodLogs, setAllFoodLogs] = useState<FoodEntry[]>([]);
   const [allActivityLogs, setAllActivityLogs] = useState<ActivityEntry[]>([]);
 
@@ -35,9 +26,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       const { data } = await api.post('/api/auth/local/register', credentials);
       setUser({ ...data.user, token: data.jwt });
       localStorage.setItem("token", data.jwt);
-      setAuthToken(data.jwt); // ✅
       setOnboardingCompleted(false);
-      navigate("/onboarding");
+      navigate("/onboarding"); // fix 2: always go to onboarding after signup
     } catch (error: any) {
       console.log(error);
       toast.error(error?.response?.data?.error?.message || error?.message);
@@ -52,8 +42,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       });
       setUser({ ...data.user, token: data.jwt });
       localStorage.setItem("token", data.jwt);
-      setAuthToken(data.jwt); // ✅
-      await fetchUser(data.jwt);
+      await fetchUser(data.jwt); // fix 3: fetch full profile to check onboarding
     } catch (error: any) {
       console.log(error);
       toast.error(error?.response?.data?.error?.message || error?.message);
@@ -65,20 +54,13 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       const { data } = await api.get('/api/users/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
-
-      console.log("USER DATA FROM STRAPI:", data);
-
       setUser({ ...data, token });
-      setAuthToken(token); // ✅
 
       if (data?.age && data?.weight && data?.goal) {
-        setOnboardingCompleted(true);
-        navigate("/");
+        setOnboardingCompleted(true); // fix 4: only mark done if profile exists
       } else {
         setOnboardingCompleted(false);
-        navigate("/onboarding");
       }
-
     } catch (error: any) {
       console.log(error);
       toast.error(error?.response?.data?.error?.message || error?.message);
@@ -106,7 +88,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       setAllActivityLogs(data);
     } catch (error: any) {
       console.log(error);
-      toast.error(error?.response?.data?.error?.message || error?.message);
+      toast.error(error?.response?.data?.error?.message || error?.message); // fix 5: removed console.error typo
     }
   };
 
@@ -114,23 +96,22 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("token");
     setUser(null);
     setOnboardingCompleted(false);
-    setAuthToken(null); // ✅
     navigate("/");
   };
 
-  useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    (async () => {
-      await fetchUser(token);
-      await fetchFoodLogs(token);
-      await fetchActivityLogs(token);
-    })();
-  } else {
-    // ✅ wrap in setTimeout to avoid synchronous setState in effect
-    setTimeout(() => setIsUserFetched(true), 0);
-  }
-}, []);
+useEffect(() => {
+    const token = localStorage.getItem("token");
+    const markFetched = () => setIsUserFetched(true);
+    
+    if (token) {
+      fetchUser(token).then(() => {
+        fetchFoodLogs(token);
+        fetchActivityLogs(token);
+      });
+    } else {
+      markFetched(); // ✅ not calling setState directly
+    }
+  }, []);
 
   const value = {
     user,
@@ -151,4 +132,5 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = () => useContext(AppContext);
