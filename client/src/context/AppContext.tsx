@@ -32,7 +32,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     localStorage.setItem("token", data.jwt);
     api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
-
+    navigate("/onboarding");
     } catch (error: any) {
           console.log(error);
           toast.error(error?.response?.data?.error?.message || error?.message)
@@ -46,10 +46,13 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (data?.user?.age && data?.user?.weight && data?.user?.goal) {
       setOnboardingCompleted(true);
+      navigate("/dashboard");
+    }else {
+      navigate("/onboarding");
     }
 
     localStorage.setItem("token", data.jwt);
-    api.defaults.headers.common['Authorization'] = `Bearer $ {data.jwt}`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
    } catch (error: any) {
          console.log(error);
           toast.error(error?.response?.data?.error?.message || error?.message)
@@ -64,7 +67,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     if (data?.age && data?.weight && data?.goal) {
       setOnboardingCompleted(true);
     }
-    api.defaults.headers.common['Authorization'] = `Bearer $ {token}`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     
    } catch (error:any) {
        console.log(error);
@@ -91,7 +94,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     } catch (error: any) {
       console.log(error);
-      toast.error(error?.response?.data?.console.error?.message || error?.message);
+      toast.error(error?.response?.data?.error?.message || error?.message);
       
     }
   };
