@@ -67,10 +67,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data?.age && data?.weight && data?.goal) {
         setOnboardingCompleted(true);
-        navigate("/dashboard"); // ← onboarding done, go to dashboard
+        navigate("/"); // ← onboarding done, go to dashboard
       } else {
         setOnboardingCompleted(false);
-        navigate("/onboarding"); // ← onboarding not done
+        navigate("/"); // ← onboarding not done
       }
 
     } catch (error: any) {
