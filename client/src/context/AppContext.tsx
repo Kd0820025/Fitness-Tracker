@@ -12,12 +12,21 @@ import toast from "react-hot-toast";
 
 const AppContext = createContext(initialState);
 
+// ✅ moved outside component
+const setAuthToken = (token: string | null) => {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User | null>(null);
   const [isUserFetched, setIsUserFetched] = useState<boolean>(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false); // ← always start false, fetchUser will set it
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [allFoodLogs, setAllFoodLogs] = useState<FoodEntry[]>([]);
   const [allActivityLogs, setAllActivityLogs] = useState<ActivityEntry[]>([]);
 
@@ -26,8 +35,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       const { data } = await api.post('/api/auth/local/register', credentials);
       setUser({ ...data.user, token: data.jwt });
       localStorage.setItem("token", data.jwt);
-      api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
-      setOnboardingCompleted(false); // ← new user, onboarding not done
+      setAuthToken(data.jwt); // ✅
+      setOnboardingCompleted(false);
       navigate("/onboarding");
     } catch (error: any) {
       console.log(error);
@@ -43,11 +52,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       });
       setUser({ ...data.user, token: data.jwt });
       localStorage.setItem("token", data.jwt);
-      api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
-
-      // fetch full user to check onboarding status
+      setAuthToken(data.jwt); // ✅
       await fetchUser(data.jwt);
-
     } catch (error: any) {
       console.log(error);
       toast.error(error?.response?.data?.error?.message || error?.message);
@@ -60,17 +66,17 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log("USER DATA FROM STRAPI:", data); // ← keep this for now
+      console.log("USER DATA FROM STRAPI:", data);
 
       setUser({ ...data, token });
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setAuthToken(token); // ✅
 
       if (data?.age && data?.weight && data?.goal) {
         setOnboardingCompleted(true);
-        navigate("/"); // ← onboarding done, go to dashboard
+        navigate("/");
       } else {
         setOnboardingCompleted(false);
-        navigate("/"); // ← onboarding not done
+        navigate("/onboarding");
       }
 
     } catch (error: any) {
@@ -108,7 +114,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("token");
     setUser(null);
     setOnboardingCompleted(false);
-    api.defaults.headers.common['Authorization'] = '';
+    setAuthToken(null); // ✅
     navigate("/");
   };
 
