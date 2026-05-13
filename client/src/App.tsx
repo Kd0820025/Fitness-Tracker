@@ -9,6 +9,7 @@ import Login from "./pages/Login"
 import Loading from "./components/Loading"
 import Onboarding from "./pages/Onboarding"
 import { Toaster } from "react-hot-toast"
+import AIRecommendations from "./pages/AIRecommendation"
 
 
 const App = () => {
@@ -28,7 +29,8 @@ const App = () => {
         <Route index element={<Dashboard />}/>
         <Route path="food" element={<FoodLog />}/>
         <Route path="activity" element={<ActivityLog />}/>
-         <Route path="profile" element={<Profile />}/>
+        <Route path="profile" element={<Profile />}/>
+        <Route path="ai-coach" element={<AIRecommendations />}/>
       </Route>
     </Routes>
     </>

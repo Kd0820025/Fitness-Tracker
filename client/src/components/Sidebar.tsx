@@ -1,4 +1,4 @@
-import { ActivityIcon, HomeIcon, MoonIcon, PersonStandingIcon, SunIcon, UserIcon, UtensilsIcon } from "lucide-react"
+import { ActivityIcon, HomeIcon, MoonIcon, PersonStandingIcon, SparklesIcon, SunIcon, UserIcon, UtensilsIcon, } from "lucide-react"
 import { useTheme } from "../context/ThemeContext"
 import { NavLink } from "react-router-dom"
 
@@ -11,6 +11,7 @@ const Sidebar = () => {
     {path: '/food', label: 'Food', icon: UtensilsIcon},
     {path: '/activity', label: 'Activity', icon: ActivityIcon},
     {path: '/profile', label: 'Profile', icon: UserIcon},
+    {path: '/ai-coach', label: 'AI Coach', icon: SparklesIcon},
   ]
 
   const {theme, toggleTheme} = useTheme()

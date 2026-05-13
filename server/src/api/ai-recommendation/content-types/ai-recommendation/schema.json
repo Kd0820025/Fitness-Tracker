@@ -1,0 +1,19 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ai_recommendations",
+  "info": {
+    "singularName": "ai-recommendation",
+    "pluralName": "ai-recommendations",
+    "displayName": "AI Recommendation"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "recommendationType": { "type": "string" },
+    "content": { "type": "text" },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

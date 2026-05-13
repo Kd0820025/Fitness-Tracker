@@ -464,6 +464,40 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAiRecommendationAiRecommendation
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ai_recommendations';
+  info: {
+    displayName: 'AI Recommendation';
+    pluralName: 'ai-recommendations';
+    singularName: 'ai-recommendation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    content: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ai-recommendation.ai-recommendation'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    recommendationType: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users_permissions_user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiFoodLogFoodLog extends Struct.CollectionTypeSchema {
   collectionName: 'food_logs';
   info: {
@@ -1020,6 +1054,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::activity-log.activity-log': ApiActivityLogActivityLog;
+      'api::ai-recommendation.ai-recommendation': ApiAiRecommendationAiRecommendation;
       'api::food-log.food-log': ApiFoodLogFoodLog;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
